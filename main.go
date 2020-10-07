@@ -168,6 +168,15 @@ func id(typeName string, attrs map[string]string) string {
 			attrs["role"],
 			attrs["policy_arn"])
 
+	case "aws_ecs_task_definition":
+		return fmt.Sprintf("%s",
+			attrs["arn"])
+
+	case "aws_cloudwatch_event_target":
+		return fmt.Sprintf("%s/%s",
+			attrs["rule"],
+			attrs["target_id"])
+
 	default:
 		return fmt.Sprintf("%s", attrs["id"])
 	}

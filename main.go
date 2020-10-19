@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -176,6 +177,44 @@ func id(typeName string, attrs map[string]string) string {
 		return fmt.Sprintf("%s/%s",
 			attrs["rule"],
 			attrs["target_id"])
+
+	case "aws_ecs_service":
+		return fmt.Sprintf("%s/%s",
+			attrs["cluster"],
+			attrs["name"])
+
+	case "aws_security_group_rule":
+		if attrs["cidr_blocks.#"] != "0" {
+			var cidrBlocks string
+			count, err := strconv.Atoi(attrs["cidr_blocks.#"])
+			if err != nil {
+				fmt.Println(err)
+			}
+			for i := 0; i < count; i++ {
+				if i == count-1 {
+					cidrBlocks = cidrBlocks + attrs["cidr_blocks."+strconv.Itoa(i)]
+				} else {
+					// if i = count don't append _
+					cidrBlocks = cidrBlocks + attrs["cidr_blocks."+strconv.Itoa(i)] + "_"
+				}
+			}
+			return fmt.Sprintf("%s_%s_%s_%s_%s_%s",
+				attrs["security_group_id"],
+				attrs["type"],
+				attrs["protocol"],
+				attrs["from_port"],
+				attrs["to_port"],
+				cidrBlocks)
+		}
+
+		return fmt.Sprintf("%s_%s_%s_%s_%s_%s",
+			attrs["security_group_id"],
+			attrs["type"],
+			attrs["protocol"],
+			attrs["from_port"],
+			attrs["to_port"],
+			attrs["source_security_group_id"])
+		// egress
 
 	default:
 		return fmt.Sprintf("%s", attrs["id"])

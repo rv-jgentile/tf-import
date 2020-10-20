@@ -186,17 +186,21 @@ func id(typeName string, attrs map[string]string) string {
 	case "aws_security_group_rule":
 		if attrs["cidr_blocks.#"] != "0" {
 			var cidrBlocks string
-			count, err := strconv.Atoi(attrs["cidr_blocks.#"])
+			count, err := strconv.Atoi(attrs["cidr_blocks.#"]) //is str, cast to int
 			if err != nil {
 				fmt.Println(err)
 			}
 			for i := 0; i < count; i++ {
 				if i == count-1 {
+					// if i is last element don't append _
 					cidrBlocks = cidrBlocks + attrs["cidr_blocks."+strconv.Itoa(i)]
 				} else {
-					// if i = count don't append _
 					cidrBlocks = cidrBlocks + attrs["cidr_blocks."+strconv.Itoa(i)] + "_"
 				}
+			}
+			// if self is "true" for ingress rule, prepend to the cidr blocks ("from_to_self_cidr")
+			if attrs["self"] == "true" && attrs["type"] == "ingress" {
+				cidrBlocks = "self_" + cidrBlocks
 			}
 			return fmt.Sprintf("%s_%s_%s_%s_%s_%s",
 				attrs["security_group_id"],
@@ -214,7 +218,6 @@ func id(typeName string, attrs map[string]string) string {
 			attrs["from_port"],
 			attrs["to_port"],
 			attrs["source_security_group_id"])
-		// egress
 
 	default:
 		return fmt.Sprintf("%s", attrs["id"])
